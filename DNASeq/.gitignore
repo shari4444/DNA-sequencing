@@ -1,0 +1,18 @@
+# Compiled C binaries and objects
+dna_lcs
+dna_lcs.exe
+*.o
+*.out
+tests/test_lcs
+tests/test_lcs.exe
+
+# Python virtual environment and bytecode
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# OS specific files
+.DS_Store
+Thumbs.db

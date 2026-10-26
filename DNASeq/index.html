@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNASeq — DNA Sequence Comparison Using Dynamic Programming</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 1. Header & Navigation -->
+    <header class="site-header" id="top">
+        <div class="header-container">
+            <div class="brand">
+                <svg class="dna-logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="8" cy="8" r="3" fill="#A52A3A" />
+                    <circle cx="24" cy="8" r="3" fill="#EAE1D7" />
+                    <line x1="8" y1="8" x2="24" y2="8" stroke="#D3BFC0" stroke-width="2" stroke-dasharray="2 2" />
+                    <circle cx="16" cy="16" r="3.5" fill="#6D1728" />
+                    <circle cx="24" cy="24" r="3" fill="#A52A3A" />
+                    <circle cx="8" cy="24" r="3" fill="#EAE1D7" />
+                    <line x1="8" y1="24" x2="24" y2="24" stroke="#D3BFC0" stroke-width="2" stroke-dasharray="2 2" />
+                    <path d="M8 8 C12 12, 12 20, 8 24" stroke="#A52A3A" stroke-width="2" fill="none" />
+                    <path d="M24 8 C20 12, 20 20, 24 24" stroke="#EAE1D7" stroke-width="2" fill="none" />
+                </svg>
+                <div class="brand-text">
+                    <span class="brand-title">DNASeq</span>
+                    <span class="project-tag">AOA MINI PROJECT</span>
+                </div>
+            </div>
+            <nav class="nav-links" aria-label="Main Navigation">
+                <a href="#compare" class="nav-link">Compare</a>
+                <a href="#visualization" class="nav-link">Visualization</a>
+                <a href="#dp-matrix-section" class="nav-link">DP Matrix</a>
+                <a href="#algorithm" class="nav-link">Algorithm</a>
+                <a href="#complexity" class="nav-link">Complexity</a>
+                <a href="#biology" class="nav-link">About</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- 2. Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="badge-pill">Dynamic Programming • Bioinformatics Demo</div>
+                <h1 class="hero-title">Explore DNA Sequences Through Dynamic Programming</h1>
+                <p class="hero-subtitle">
+                    Compare two DNA sequences, discover their longest common subsequence, and visualize how a Dynamic Programming algorithm finds shared patterns.
+                </p>
+                <div class="hero-actions">
+                    <a href="#compare" class="btn btn-primary">Start Comparison</a>
+                    <a href="#algorithm" class="btn btn-secondary">Learn Algorithm</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. DNA Sequence Input Section -->
+        <section class="section-container" id="compare">
+            <div class="section-header">
+                <h2 class="section-title">Sequence Input & Comparison</h2>
+                <p class="section-desc">Enter two DNA sequences consisting of nucleotides Adenine (A), Thymine (T), Guanine (G), and Cytosine (C).</p>
+            </div>
+
+            <!-- Pre-configured Examples Bar -->
+            <div class="examples-bar" role="region" aria-label="Example Sequences">
+                <span class="examples-label">Try Example:</span>
+                <button type="button" class="btn-chip" id="example-standard-btn">Standard (ATGCCGTA & ATGCGTA)</button>
+                <button type="button" class="btn-chip" id="example-repeated-btn">Repeated (AAAA & AA)</button>
+                <button type="button" class="btn-chip" id="example-textbook-btn">Textbook (AGGTAB & GXTXAYB)</button>
+                <button type="button" class="btn-chip" id="example-different-btn">Different (AAAA & TTTT)</button>
+            </div>
+
+            <form id="comparison-form" class="comparison-card" novalidate>
+                <div class="input-grid">
+                    <!-- Sequence 1 Card -->
+                    <div class="input-card">
+                        <div class="input-card-header">
+                            <label for="seq1" class="input-label">DNA Sequence 1</label>
+                            <span class="counter-badge" id="seq1-count">0 / 500 bp</span>
+                        </div>
+                        <div class="textarea-wrapper">
+                            <textarea id="seq1" name="seq1" rows="3" placeholder="ATGCCGTA" spellcheck="false" autocomplete="off" autocapitalize="characters"></textarea>
+                        </div>
+                        <div class="input-feedback" id="seq1-feedback" aria-live="polite"></div>
+                    </div>
+
+                    <!-- Sequence 2 Card -->
+                    <div class="input-card">
+                        <div class="input-card-header">
+                            <label for="seq2" class="input-label">DNA Sequence 2</label>
+                            <span class="counter-badge" id="seq2-count">0 / 500 bp</span>
+                        </div>
+                        <div class="textarea-wrapper">
+                            <textarea id="seq2" name="seq2" rows="3" placeholder="ATGCGTA" spellcheck="false" autocomplete="off" autocapitalize="characters"></textarea>
+                        </div>
+                        <div class="input-feedback" id="seq2-feedback" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="allow-general-toggle">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Textbook LCS Mode (allow all uppercase letters A-Z for classic textbook examples like AGGTAB)</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="compare-btn" class="btn btn-primary btn-lg">
+                        <span class="btn-text">Compare Sequences</span>
+                        <span class="spinner" id="compare-spinner" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" id="load-example-btn" class="btn btn-secondary">Load Example</button>
+                    <button type="button" id="clear-btn" class="btn btn-outline">Clear Inputs</button>
+                </div>
+
+                <div id="general-alert" class="alert-box" style="display: none;" role="alert"></div>
+            </form>
+        </section>
+
+        <!-- 4. Results Dashboard -->
+        <section class="section-container" id="results-dashboard" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Analysis Results Dashboard</h2>
+                <p class="section-desc">Computed using the compiled standalone C implementation through the Flask backend.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Stat Card: LCS String -->
+                <div class="stat-card stat-card-wide">
+                    <span class="stat-label">Longest Common Subsequence (LCS)</span>
+                    <div class="stat-lcs-display" id="res-lcs-text">—</div>
+                    <span class="stat-subtext">Ordered characters shared across both sequences without changing order</span>
+                </div>
+
+                <!-- Stat Card: LCS Length -->
+                <div class="stat-card">
+                    <span class="stat-label">LCS Length</span>
+                    <div class="stat-value" id="res-lcs-len">0</div>
+                    <span class="stat-subtext">Matches extracted from dp[m][n]</span>
+                </div>
+
+                <!-- Stat Card: Sequence 1 Length -->
+                <div class="stat-card">
+                    <span class="stat-label">Sequence 1 (m)</span>
+                    <div class="stat-value" id="res-len1">0</div>
+                    <span class="stat-subtext">Nucleotides evaluated</span>
+                </div>
+
+                <!-- Stat Card: Sequence 2 Length -->
+                <div class="stat-card">
+                    <span class="stat-label">Sequence 2 (n)</span>
+                    <div class="stat-value" id="res-len2">0</div>
+                    <span class="stat-subtext">Nucleotides evaluated</span>
+                </div>
+
+                <!-- Stat Card: Overlap Score -->
+                <div class="stat-card stat-card-wide">
+                    <div class="score-header">
+                        <span class="stat-label">LCS-Based Overlap Score</span>
+                        <span class="score-percent" id="res-overlap-score">0.00%</span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="res-overlap-progress" style="width: 0%;"></div>
+                    </div>
+                    <p class="score-explanation">
+                        Formula: <code>(LCS Length / max(m, n)) × 100</code>. Reflects relative sequence coverage.
+                    </p>
+                </div>
+
+                <!-- Stat Card: Time & Space Complexities -->
+                <div class="stat-card">
+                    <span class="stat-label">Time Complexity</span>
+                    <div class="stat-value stat-mono" id="res-time-comp">O(m × n)</div>
+                    <span class="stat-subtext">DP table filling + O(m+n) backtrack</span>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-label">Space Complexity</span>
+                    <div class="stat-value stat-mono" id="res-space-comp">O(m × n)</div>
+                    <span class="stat-subtext">DP matrix memory allocation</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Sequence Comparison Visualization -->
+        <section class="section-container" id="visualization" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Sequence Alignment & Matched Nucleotides</h2>
+                <p class="section-desc">Positions highlighted below represent the exact reconstructed LCS path returned by the C implementation.</p>
+            </div>
+
+            <div class="visualization-card">
+                <!-- Legend -->
+                <div class="vis-legend">
+                    <div class="legend-item">
+                        <span class="legend-swatch legend-matched"></span>
+                        <span>Matched Nucleotide (Part of LCS)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-swatch legend-unmatched"></span>
+                        <span>Non-Matching Position</span>
+                    </div>
+                </div>
+
+                <!-- Sequence 1 Track -->
+                <div class="seq-track-wrapper">
+                    <div class="seq-track-header">
+                        <span class="seq-track-title">Sequence 1</span>
+                        <span class="seq-track-meta" id="vis-seq1-meta">0 nucleotides</span>
+                    </div>
+                    <div class="nucleotide-ribbon" id="seq1-ribbon"></div>
+                </div>
+
+                <!-- Sequence 2 Track -->
+                <div class="seq-track-wrapper">
+                    <div class="seq-track-header">
+                        <span class="seq-track-title">Sequence 2</span>
+                        <span class="seq-track-meta" id="vis-seq2-meta">0 nucleotides</span>
+                    </div>
+                    <div class="nucleotide-ribbon" id="seq2-ribbon"></div>
+                </div>
+
+                <div class="vis-callout">
+                    <strong>Bioinformatics Note:</strong> For some sequence pairs, multiple distinct alignments yield the same maximal LCS length. This visualization highlights one valid optimal path backtracked by the DP matrix algorithm. Matched positions illustrate algorithmically shared patterns and do not imply biological conservation.
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Dynamic Programming Table -->
+        <section class="section-container" id="dp-matrix-section" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Dynamic Programming Matrix</h2>
+                <p class="section-desc">
+                    Examine the <code>(m + 1) × (n + 1)</code> matrix generated by the C program. Each cell <code>dp[i][j]</code> holds the LCS length of prefixes <code>seq1[0..i-1]</code> and <code>seq2[0..j-1]</code>.
+                </p>
+            </div>
+
+            <div class="matrix-card">
+                <div class="matrix-controls">
+                    <div class="matrix-legend-pills">
+                        <span class="pill pill-zero">0: Base Case (Empty Prefix &epsilon;)</span>
+                        <span class="pill pill-target">dp[m][n]: Final LCS Length</span>
+                    </div>
+                </div>
+
+                <div class="matrix-overflow-container" id="matrix-wrapper">
+                    <!-- Populated dynamically via script.js from C output -->
+                </div>
+
+                <div class="matrix-annotation">
+                    <p><strong>Recurrence Definition:</strong></p>
+                    <ul>
+                        <li>If <code>i = 0</code> or <code>j = 0</code>: <code>dp[i][j] = 0</code></li>
+                        <li>If <code>seq1[i - 1] == seq2[j - 1]</code>: <code>dp[i][j] = 1 + dp[i - 1][j - 1]</code> (Diagonal + 1)</li>
+                        <li>Otherwise: <code>dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])</code> (Max of Upper & Left)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Algorithm Explanation Panel -->
+        <section class="section-container" id="algorithm">
+            <div class="section-header">
+                <h2 class="section-title">Algorithm Explanation (Step by Step)</h2>
+                <p class="section-desc">A structured walkthrough of the Longest Common Subsequence Dynamic Programming algorithm, designed for Analysis of Algorithms (AOA) viva preparation.</p>
+            </div>
+
+            <div class="timeline-card">
+                <ol class="algorithm-timeline">
+                    <li class="timeline-step">
+                        <div class="step-marker">1</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Accept Two DNA Sequences</h3>
+                            <p class="step-desc">Receive Sequence 1 of length <code>m</code> and Sequence 2 of length <code>n</code> from user input or terminal arguments.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">2</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Validate the Input</h3>
+                            <p class="step-desc">Normalize all characters to uppercase and verify that all characters belong to the DNA alphabet {A, T, G, C}. Reject invalid characters.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">3</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Calculate Sequence Lengths</h3>
+                            <p class="step-desc">Compute lengths <code>m = strlen(seq1)</code> and <code>n = strlen(seq2)</code>, verifying that neither exceeds the maximum buffer size (500).</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">4</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Create a DP Table of Size (m + 1) &times; (n + 1)</h3>
+                            <p class="step-desc">Allocate a 2D integer table where rows index characters of Sequence 1 and columns index characters of Sequence 2.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">5</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Initialize First Row and First Column to Zero</h3>
+                            <p class="step-desc">Set <code>dp[i][0] = 0</code> for all <code>i</code> and <code>dp[0][j] = 0</code> for all <code>j</code>, representing comparisons with an empty sequence prefix (&epsilon;).</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">6</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Traverse the Table Using Two Nested Loops</h3>
+                            <p class="step-desc">Iterate row by row from <code>i = 1</code> to <code>m</code> and column by column from <code>j = 1</code> to <code>n</code>.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">7</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Compare Current Characters</h3>
+                            <p class="step-desc">Examine if nucleotide <code>seq1[i - 1]</code> is identical to nucleotide <code>seq2[j - 1]</code>.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">8</div>
+                        <div class="step-body">
+                            <h3 class="step-title">If Characters Match, Add One to Diagonal Value</h3>
+                            <p class="step-desc">Execute <code>dp[i][j] = 1 + dp[i - 1][j - 1]</code>, extending the optimal subsequence found up to the preceding positions.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">9</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Otherwise, Take the Larger of Upper and Left Values</h3>
+                            <p class="step-desc">When characters differ, take <code>max(dp[i - 1][j], dp[i][j - 1])</code> using an ordinary <code>if-else</code> statement to preserve the best previous match.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">10</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Continue Until Entire Table is Filled</h3>
+                            <p class="step-desc">Process all <code>(m &times; n)</code> subproblems bottom-up, ensuring every cell holds the optimal substructure solution.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">11</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Read LCS Length from dp[m][n]</h3>
+                            <p class="step-desc">The bottom-right cell <code>dp[m][n]</code> holds the exact length of the Longest Common Subsequence.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">12</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Backtrack from the Bottom-Right Cell</h3>
+                            <p class="step-desc">Initialize pointers <code>i = m</code> and <code>j = n</code> to trace the decisions that led to the optimal score.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">13</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Record Matching Characters</h3>
+                            <p class="step-desc">Whenever <code>seq1[i - 1] == seq2[j - 1]</code>, add the character to the output buffer and decrement both <code>i</code> and <code>j</code>.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">14</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Move Toward Neighboring Cell with Larger Value</h3>
+                            <p class="step-desc">When characters differ, move to <code>i - 1</code> if <code>dp[i - 1][j] &ge; dp[i][j - 1]</code>, otherwise move to <code>j - 1</code>.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">15</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Reverse Reconstructed Sequence</h3>
+                            <p class="step-desc">Since backtracking collects characters from right to left, reverse the collected string to restore original 5' to 3' order.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">16</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Calculate Overlap Score</h3>
+                            <p class="step-desc">Compute <code>(LCS Length / max(m, n)) &times; 100</code>, handling zero denominator safely if both inputs are empty.</p>
+                        </div>
+                    </li>
+                    <li class="timeline-step">
+                        <div class="step-marker">17</div>
+                        <div class="step-body">
+                            <h3 class="step-title">Display the Final Result</h3>
+                            <p class="step-desc">Return the reconstructed LCS string, length, overlap score, highlighted alignment, and DP matrix to the user.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- 8. Complexity Analysis Panel -->
+        <section class="section-container" id="complexity">
+            <div class="section-header">
+                <h2 class="section-title">Complexity Analysis</h2>
+                <p class="section-desc">Theoretical asymptotic bounds for the Longest Common Subsequence dynamic programming approach.</p>
+            </div>
+
+            <div class="complexity-grid">
+                <!-- Time Complexity Card -->
+                <div class="complexity-card">
+                    <div class="complexity-badge">TIME COMPLEXITY</div>
+                    <div class="complexity-formula">O(m &times; n)</div>
+                    <h3 class="complexity-card-title">Quadratic in Input Lengths</h3>
+                    <p class="complexity-card-desc">
+                        The Dynamic Programming table contains <code>(m + 1) &times; (n + 1)</code> cells. Computing each individual cell requires comparing two characters and taking the maximum of two previously calculated adjacent cells, which runs in <strong>O(1)</strong> constant time.
+                    </p>
+                    <div class="complexity-breakdown">
+                        <div class="breakdown-row">
+                            <span>Table Construction:</span>
+                            <strong>O(m &times; n)</strong>
+                        </div>
+                        <div class="breakdown-row">
+                            <span>Backtracking Reconstruction:</span>
+                            <strong>O(m + n)</strong>
+                        </div>
+                        <div class="breakdown-row">
+                            <span>Total Running Time:</span>
+                            <strong>O(m &times; n)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Space Complexity Card -->
+                <div class="complexity-card">
+                    <div class="complexity-badge">SPACE COMPLEXITY</div>
+                    <div class="complexity-formula">O(m &times; n)</div>
+                    <h3 class="complexity-card-title">Matrix Memory Allocation</h3>
+                    <p class="complexity-card-desc">
+                        To reconstruct the actual Longest Common Subsequence through backtracking, the entire 2D matrix of dimensions <code>(m + 1) &times; (n + 1)</code> must be stored in memory.
+                    </p>
+                    <div class="complexity-breakdown">
+                        <div class="breakdown-row">
+                            <span>2D DP Matrix Size:</span>
+                            <strong>(m + 1) &times; (n + 1) integers</strong>
+                        </div>
+                        <div class="breakdown-row">
+                            <span>LCS Reconstructed Buffer:</span>
+                            <strong>O(min(m, n))</strong>
+                        </div>
+                        <div class="breakdown-row">
+                            <span>Total Space Usage:</span>
+                            <strong>O(m &times; n)</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Biological Context & Scientific Limitations -->
+        <section class="section-container" id="biology">
+            <div class="section-header">
+                <h2 class="section-title">Biological Context & Limitations</h2>
+                <p class="section-desc">Understanding the role and constraints of algorithmic sequence comparison in computational biology.</p>
+            </div>
+
+            <div class="bio-card">
+                <div class="bio-grid">
+                    <div class="bio-content-col">
+                        <h3 class="bio-subtitle">Educational Bioinformatics Demonstration</h3>
+                        <p>
+                            In computational genomics, sequence alignment helps computer scientists explore algorithmic patterns in genetic text. This tool demonstrates:
+                        </p>
+                        <ul class="bio-list">
+                            <li>How discrete algorithms handle long polymer strings composed of 4 nucleotide bases.</li>
+                            <li>How Dynamic Programming solves sequence similarity problems by breaking them into overlapping subproblems.</li>
+                            <li>How backtracking through optimal score matrices recovers actual shared subsequences.</li>
+                        </ul>
+                    </div>
+                    <div class="bio-content-col">
+                        <h3 class="bio-subtitle">Real-World Genomic Algorithms</h3>
+                        <p>
+                            Professional bioinformatics pipelines use advanced alignment scoring schemes:
+                        </p>
+                        <ul class="bio-list">
+                            <li><strong>Needleman-Wunsch:</strong> Global alignment with gap penalties and substitution matrices.</li>
+                            <li><strong>Smith-Waterman:</strong> Local alignment optimizing island regions of biological homology.</li>
+                            <li><strong>BLAST:</strong> Heuristic k-mer database search for rapid genomic lookups.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Prominent Scientific Disclaimer -->
+                <div class="disclaimer-banner" role="alert">
+                    <div class="disclaimer-header">
+                        <svg class="disclaimer-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <strong>Important Scientific Disclaimer</strong>
+                    </div>
+                    <p class="disclaimer-text">
+                        This application is an educational demonstration. An LCS-based overlap score is not equivalent to validated biological sequence identity and cannot establish genetic relatedness, disease risk, or biological function.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 10. Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <div class="footer-brand">DNASeq</div>
+                <p class="footer-tagline">Analysis of Algorithms (AOA) Mini Project • Second Year Engineering</p>
+            </div>
+            <div class="footer-col">
+                <div class="footer-heading">Algorithm</div>
+                <p class="footer-meta">Longest Common Subsequence (LCS)</p>
+                <p class="footer-meta">Recurrence: Dynamic Programming with Backtracking</p>
+            </div>
+            <div class="footer-col">
+                <div class="footer-heading">Technologies</div>
+                <p class="footer-meta">C (Algorithm Core), Python Flask (API Server), HTML5, CSS3, Vanilla JS</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; DNASeq Project • Educational Bioinformatics Demonstration • All computations verified against standalone C binary</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
